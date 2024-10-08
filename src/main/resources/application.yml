@@ -1,0 +1,52 @@
+server:
+  port: 16666
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name : its
+  messages:
+    basename: i18n.login
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+## 环境配置文件 dev
+  profiles:
+    active: dev
+
+## 静态页面配置
+  thymeleaf:
+    #热部署文件，页面不产生缓存，及时更新
+    cache: false
+    prefix: classpath:static/templates/
+    suffix: .html
+    encoding: UTF-8
+
+## Mybatis config
+
+## pagehelper
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: countSql
+  count: countSql
+  returnPageInfo: check
+
+## 记录日志
+logging:
+  config: classpath:logback-spring.xml
+## Start logging
+  level:
+    root: INFO
+
+springdoc:
+  api-docs:
+    enabled: true # 开启OpenApi接口
+    path: /v3/api-docs  # 自定义路径，默认为 "/v3/api-docs"
+  swagger-ui:
+    enabled: true # 开启swagger界面，依赖OpenApi，需要OpenApi同时开启
+    path: /index.html # 自定义路径，默认为"/swagger-ui/index.html"
+
