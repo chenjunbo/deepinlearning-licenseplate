@@ -117,7 +117,7 @@
 	\end{center}
 	
 	Namely: \( dst=A \cdot inMat \) where A is an affine matrix.
-	\begin{lstlisting}[language=Java]
+	\begin{java}[language=Java]
 		/**
 		*@ param pX moves pixels horizontally; If it is greater than 0, it indicates positive movement along the axis; if it is less than 0, it indicates negative movement along the axis
 		*@ param pY moves pixels vertically; If it is greater than 0, it indicates positive movement along the axis; if it is less than 0, it indicates negative movement along the axis
@@ -133,7 +133,7 @@
 			// Perform affine transformation using the translation matrix
 			Imgproc.warpAffine(inMat, dst, trans_mat, inMat.size());
 			}
-		\end{lstlisting}
+		\end{java}
 	
 \subsection{Rotate}
 To rotate an image around a specific center point, a rotation matrix can be created. The formula for rotation is as follows:
