@@ -1,202 +1,290 @@
 \documentclass{article}
-\usepackage{graphicx}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \usepackage{listings}
-\usepackage{xcolor}
+\usepackage{caption}
 \usepackage{hyperref}
-\usepackage{color}
-\definecolor{keywordcolor}{rgb}{0.8,0.1,0.5}
-\definecolor{webgreen}{rgb}{0,.5,0}
-\definecolor{NavyBlue}{RGB}{0, 0, 128} % Standard RGB value for Navy Blue
-\title{License Plate Recognition Algorithm Explanation Document}
+
+\title{License Plate Recognition Algorithm Explanation}
 \author{}
 \date{}
-\lstset{
-	% 进行参数设置
-	language=Java, % 设置语言
-	basicstyle=\ttfamily, % 设置字体族
-	breaklines=true, % 自动换行
-	keywordstyle=\bfseries\color{NavyBlue}, % 设置关键字为粗体，颜色为 NavyBlue
-	morekeywords={}, % 设置更多的关键字，用逗号分隔	
-	emph={self}, % 指定强调词，如果有多个，用逗号隔开
-	emphstyle=\bfseries\color{Rhodamine}, % 强调词样式设置
-	commentstyle=\itshape\color{black!50!white}, % 设置注释样式，斜体，浅灰色
-	stringstyle=\bfseries\color{PineGreen!90!black}, % 设置字符串样式
-	columns=flexible,
-	numbers=left, % 显示行号在左边
-	numbersep=2em, % 设置行号的具体位置
-	numberstyle=\footnotesize, % 缩小行号
-	frame=single, % 边框
-	framesep=0.5em % 设置边框与代码的距离
-	% Java代码
-}
+
 \begin{document}
 	
 	\maketitle
 	
-	\section{Image Channel}
-	In OpenCV, images can be represented as channels 1, 2, 3, and 4, respectively:
+	\section{Image channel}
+	In OpenCV, images can be represented as channels 1, 2, 3, and 4:
 	\begin{itemize}
-		\item Channel 1 is a grayscale image;
-		\item The 2-channel images are RGB555 and RGB565. The 2-channel diagram may be used in program processing, such as Fourier transform, where one channel is a real number and the other is an imaginary number, mainly for ease of programming. RGB555 is 16 bits, 2 bytes, 5+6+5. The first 5 bits of the first byte are R, the last 3 bits plus the second byte are G, and the last 5 bits of the second byte are B. It can be seen that the original image has been compressed;
-		\item 3-channel color image (RGB);
-		\item 4 channels are RGBA, which is RGB plus an A channel, also known as the alpha channel, representing transparency. PNG images are a typical type of 4-channel image. The alpha channel can be assigned values from 0 to 1 or from 0 to 255, indicating transparency to opacity.
+		\item Channel 1 is a grayscale image.
+		\item 2-channel images include RGB555 and RGB565. RGB555 uses 16 bits (5+6+5) to store the color information, where 5 bits are for red, 6 bits for green, and 5 bits for blue. This is often used for program processing, like Fourier transforms, where one channel is real and the other is imaginary.
+		\item 3-channel images are RGB color images.
+		\item 4-channel images are RGBA, where A represents the alpha channel, or transparency. PNG images typically use 4 channels. The alpha channel can range from 0 to 255, representing full transparency to full opacity.
 	\end{itemize}
 	
-	\subsection{CvType Type Constant Combination Rules}
+	\textbf{CvType type constant combination rules:}
 	\begin{itemize}
-		\item Byte: number of bits, digits. There are 8 bytes, 16 bytes, 32 bytes, and 64 bytes. In Mat, the space occupied by each pixel is 8 bits, which is CV\_8.
-		\item U|S|F :
+		\item \textbf{Byte:} Refers to the number of bits used. It can be 8, 16, 32, or 64 bits.
+		\item \textbf{U|S|F:}
 		\begin{itemize}
-			\item U: unsigned int, unsigned integer;
-			\item S: signed int, signed integer;
-			\item F: float, single precision floating-point type, float type itself has a sign. The terms signed and unsigned here refer to the binary encoding of images. In the process of writing, I mostly use unsigned symbols, namely CV\_8U and CV\_16U, when there is calculation involved.
-			\item C [channels]: The number of channels in an image.
+			\item U: Unsigned integer
+			\item S: Signed integer
+			\item F: Float (single precision)
 		\end{itemize}
-		\textbf{For example, CV\_8UC3 is an 8-bit unsigned 3-channel (RGB color) image.}
+		\item \textbf{C [channels]:} The number of channels in the image.
 	\end{itemize}
+	\textbf{Example:} \texttt{CV\_8UC3} refers to an 8-bit unsigned, 3-channel (RGB color) image.
 	
 	\section{Grayscale Image}
-	\begin{itemize}
-		\item Color images usually include three components: R, G, and B. Grayscale conversion is the process of making the R, G, and B components of a color image equal.
-		\item Each pixel in a grayscale image has only one sample color, and its grayscale is a multi-level color depth located between black and white.
-		\item Pixels with higher grayscale values are brighter, while those with lower grayscale values are darker. The maximum pixel value is 255 (representing white) and the minimum pixel value is 0 (representing black).
-	\end{itemize}
-	\begin{lstlisting}[language=Java]
-		Imgproc.cvtColor(inMat, dst, Imgproc.COLOR_BGR2GRAY);
-	\end{lstlisting}
+	Color images usually have three components: R, G, and B. Grayscale conversion is the process of making the R, G, and B components equal for each pixel. Each pixel in a grayscale image has only one sample color, ranging from 0 (black) to 255 (white). Higher grayscale values are brighter, and lower values are darker.
 	
-	\url{https://leejason.blog.csdn.net/article/details/106416128}
+	Grayscale conversion in OpenCV:
+	\begin{verbatim}
+		Imgproc.cvtColor(inMat, dst, Imgproc.COLOR_BGR2GRAY);
+	\end{verbatim}
+	
+	\href{https://leejason.blog.csdn.net/article/details/106416128}{Source Link}
 	
 	\section{Image Filtering (Noise Reduction)}
-	Image filtering, which suppresses the noise of the target image while preserving its detailed features as much as possible, is an indispensable operation in image preprocessing. The quality of its processing effect will directly affect the effectiveness and reliability of subsequent image processing and analysis. There are two types of purposes: one is vague; another type is to eliminate noise.
+	Image filtering reduces noise in the target image while preserving its detailed features. There are two types of filtering:
+	\begin{itemize}
+		\item Blurring
+		\item Noise elimination
+	\end{itemize}
 	
 	\subsection{Gaussian Filtering}
-	Also known as Gaussian blur, the principle of blur:
-	\begin{itemize}
-		\item Take a matrix (3x3, 5x5) and convolve it with the original image from left to right and top to bottom. Finally, assign the convolution value to the center pixel of the current convolution.
-		\item The size and value of a matrix are commonly referred to as convolution kernels.
-		\item Used to suppress noise, smooth images, and prevent detecting noise as edges.
-		\item Compared to mean filtering, Gaussian filtering has a smaller degree of blur in images.
-	\end{itemize}
-	\begin{lstlisting}[language=Java]
-		public static final int BLUR_KERNEL=3; //The size of the filtering kernel must be a positive odd number
+	Also known as Gaussian blur, it works by convolving the image with a Gaussian kernel (3x3, 5x5). This operation smooths the image and reduces noise. Gaussian filtering is better at preserving details than mean filtering.
+	
+	Example:
+	\begin{verbatim}
+		public static final int BLUR_KERNEL = 3;
 		public static void gaussianBlur(Mat inMat, Mat dst) {
-			Size ksize=new Size(BLUR_KERNEL, BLUR_KERNEL); //3x3
+			Size ksize = new Size(BLUR_KERNEL, BLUR_KERNEL); // 3x3
 			Imgproc.GaussianBlur(inMat, dst, ksize, 0, 0, Core.BORDER_DEFAULT);
 		}
-	\end{lstlisting}
-	
-	\url{https://blog.csdn.net/qq_35294564/article/details/81142524}
+	\end{verbatim}
 	
 	\subsection{Median Filtering}
-	Replacing the grayscale value of a pixel with the median grayscale value in the pixel domain means replacing all values with the median value of a region. Can exclude the maximum and minimum values:
-	\begin{itemize}
-		\item Removing speckle noise and salt and pepper noise is very useful. Mean filtering noise is also involved in the operation.
-		\item The median filtering time is more than 5 times that of the mean filtering.
-	\end{itemize}
-	\begin{lstlisting}[language=Java]
-		public static final int BLUR_KERNEL=3; //The size of the filtering kernel must be a positive odd number
+	Median filtering replaces the grayscale value of a pixel with the median value of its neighbors. It is very effective in removing speckle noise and salt-and-pepper noise.
+	
+	Example:
+	\begin{verbatim}
 		public static void medianBlur(Mat inMat, Mat dst) {
-			Size ksize = new Size(BLUR_KERNEL, BLUR_KERNEL); //3x3
-			Imgproc.MedianBlur(inMat, dst, ksize, 0, 0, Core.BORDER_DEFAULT);
+			Imgproc.medianBlur(inMat, dst, 3);
 		}
-	\end{lstlisting}
+	\end{verbatim}
 	
 	\subsection{Mean Filtering}
-	The mean filtering itself has inherent flaws, that is, it cannot protect image details well, and at the same time, it destroys the details of the image while denoising, making the image blurry and unable to remove noise points well, especially the salt and pepper noise.
-	\begin{lstlisting}[language=Java]
-		public static final int BLUR_KERNEL=5; //The size of the filtering kernel must be a positive odd number
+	Mean filtering averages the pixel values in a region. However, it can blur the image and reduce details, making it ineffective at removing noise like salt-and-pepper noise.
+	
+	Example:
+	\begin{verbatim}
 		public static void blur(Mat inMat, Mat dst) {
-			Point anchor = new Point(-1,-1);
-			Size ksize = new Size(BLUR_KERNEL, BLUR_KERNEL);
-			Imgproc.blur(inMat, dst, ksize, anchor, Core.BORDER_DEFAULT);
+			Imgproc.blur(inMat, dst, new Size(5, 5));
 		}
-	\end{lstlisting}
+	\end{verbatim}
 	
 	\section{Affine Transformation}
-	The general operations for changing images include zooming in, zooming out, rotating, etc., collectively referred to as \textbf{geometric transformations}; The main image transformations include affine transformation, projection transformation, and polar coordinate transformation.
-	
-	There are two main steps in transforming an image:
+	Affine transformations involve geometric operations like scaling, rotating, and translating an image. It includes:
 	\begin{itemize}
-		\item Implementing the transformation of spatial coordinates means moving the image from its initial position to its final position.
-		\item Use an interpolation algorithm to complete the grayscale value of each pixel in the output image.
+		\item Transforming spatial coordinates
+		\item Using interpolation to fill pixel values in the output image
 	\end{itemize}
-	INTER-NEAREST nearest neighbor interpolation;
-	INTER\_LINEAR bilinear interpolation (default);
-	When using pixel region relationships for resampling, downsampling, and image reduction in INTER\_AREA, it is used;
-	INTER\_CUBIC 4x4 pixel neighborhood bicubic interpolation (used when enlarging images);
-	Lanczos interpolation of INTER\_LANCZOS4 8x8 pixel neighborhood.
 	
-	\subsection{Translate}
-	Translation is the simplest affine transformation; If the spatial coordinates (x, y) are moved 100 along the x-axis and 200 along the y-axis. The translated coordinates are (x+100, y+200).
+	Common interpolation methods:
+	\begin{itemize}
+		\item INTER\_NEAREST: Nearest neighbor interpolation
+		\item INTER\_LINEAR: Bilinear interpolation (default)
+		\item INTER\_AREA: Used for downsampling
+		\item INTER\_CUBIC: Bicubic interpolation (4x4 pixel neighborhood)
+		\item INTER\_LANCZOS4: Lanczos interpolation (8x8 pixel neighborhood)
+	\end{itemize}
 	
-	After generalizing this process, assume that any spatial coordinate (x, y) is first translated along the x-axis by Px and then along the y-axis by Py. The obtained coordinates are (x+Px, y+Py). The translation process can be represented by a matrix as follows:
+	\subsection{Translation}
+	Translation is the simplest affine transformation, moving the image along the x and y axes.
 	
-	\begin{center}
-		\includegraphics[width=0.5\textwidth]{mdpic/20240918163045.png}
-	\end{center}
+	\begin{equation}
+		\text{dst} = A \times \text{inMat}
+	\end{equation}
+	where $A$ is the affine transformation matrix.
 	
-	Namely: \( dst=A \cdot inMat \) where A is an affine matrix.
-	\begin{lstlisting}[language=Java]
-		/**
-		*@ param pX moves pixels horizontally; If it is greater than 0, it indicates positive movement along the axis; if it is less than 0, it indicates negative movement along the axis
-		*@ param pY moves pixels vertically; If it is greater than 0, it indicates positive movement along the axis; if it is less than 0, it indicates negative movement along the axis
-		*/
+	Example:
+	\begin{verbatim}
 		public static void translateImg(Mat inMat, Mat dst, int pX, int pY) {
-			//Define a translation matrix to create a fully zero matrix with 2 rows and 3 columns;
-			//Normally, it should be 3 \times 3, but the value of the last line has been fixed to 0 0 1
 			Mat trans_mat = Mat.zeros(2, 3, CvType.CV_32FC1);
 			trans_mat.put(0, 0, 1);
 			trans_mat.put(0, 2, pX);
 			trans_mat.put(1, 1, 1);
 			trans_mat.put(1, 2, pY);
-			// Perform affine transformation using the translation matrix
 			Imgproc.warpAffine(inMat, dst, trans_mat, inMat.size());
-			}
-		\end{lstlisting}
+		}
+	\end{verbatim}
 	
-\subsection{Rotate}
-To rotate an image around a specific center point, a rotation matrix can be created. The formula for rotation is as follows:
-
-\[
-\begin{bmatrix}
-x' \\
-y'
-\end{bmatrix}
-=
-\begin{bmatrix}
-\cos(\theta) & -\sin(\theta) \\
-\sin(\theta) & \cos(\theta)
-\end{bmatrix}
-\begin{bmatrix}
-x \\
-y
-\end{bmatrix}
-\]
-
-Where \((x', y')\) are the new coordinates after rotation and \(\theta\) is the rotation angle. The center of rotation can be specified to avoid shifting the image out of bounds.
-
-\begin{lstlisting}[language=Java]
-public static void rotateImg(Mat inMat, Mat dst, double angle, Point center) {
-// Calculate the rotation matrix
-Mat rot_mat = Imgproc.getRotationMatrix2D(center, angle, 1.0);
-// Perform affine transformation using the rotation matrix
-Imgproc.warpAffine(inMat, dst, rot_mat, inMat.size());
-}
-\end{lstlisting}
-
-\subsection{Scale}
-Scaling an image can either enlarge or shrink it. The scale factor determines the extent of this transformation.
-
-\begin{lstlisting}
-public static void scaleImg(Mat inMat, Mat dst, double scaleX, double scaleY) {
-// Scaling the image using resize method
-Imgproc.resize(inMat, dst, new Size(inMat.width() * scaleX, inMat.height() * scaleY));
-}
-\end{lstlisting}
-
-\section{Conclusion}
-In this document, we discussed various fundamental concepts related to image processing, including color channels, grayscale conversion, image filtering techniques, and affine transformations. Each method plays a crucial role in preparing images for further analysis, particularly in applications such as license plate recognition. Mastering these techniques is essential for effective image preprocessing and enhances the reliability of recognition algorithms.
-
-\end{document}
+	\subsection{Scaling}
+	Scaling changes the size of the image by applying a transformation matrix. To avoid image distortion, the aspect ratio should be locked.
+	
+	Example:
+	\begin{verbatim}
+		public static Mat zoom(Mat inMat, Integer maxWidth) {
+			double ratio = maxWidth * 1.0 / inMat.width();
+			Integer maxHeight = (int) Math.round(ratio * inMat.height());
+			Mat dst = new Mat(maxHeight, maxWidth, inMat.type());
+			Imgproc.resize(inMat, dst, dst.size(), ratio, ratio, Imgproc.INTER_CUBIC);
+			return dst;
+		}
+	\end{verbatim}
+	
+	\subsection{Rotation}
+	Rotation involves rotating the image by a specified angle. Positive angles result in clockwise rotation, while negative angles result in counterclockwise rotation.
+	
+	Example:
+	\begin{verbatim}
+		public static void rotateImg(Mat inMat, Mat dst, double angle, Point center) {
+			Mat img_rotated = Imgproc.getRotationMatrix2D(center, angle, 1);
+			Imgproc.warpAffine(inMat, dst, img_rotated, inMat.size());
+		}
+	\end{verbatim}
+	
+	\subsection{Affine Transformation (Skew Correction)}
+	Affine transformation can correct image skew by taking three points from the original image and calculating the transformation matrix.
+	
+	Example:
+	\begin{verbatim}
+		public static void warpAffine(Mat inMat, Mat dst) {
+			MatOfPoint2f srcPoints = new MatOfPoint2f();
+			srcPoints.fromArray(new Point(0, 0), new Point(0, inMat.rows()), 
+			new Point(inMat.cols(), 0));
+			MatOfPoint2f dstPoints = new MatOfPoint2f();
+			dstPoints.fromArray(new Point(80, 0), new Point(-80, inMat.rows()), 
+			new Point(inMat.cols() + 80, 0));
+			Mat trans_mat = Imgproc.getAffineTransform(srcPoints, dstPoints);
+			Imgproc.warpAffine(inMat, dst, trans_mat, inMat.size());
+		}
+	\end{verbatim}
+	
+	\subsection{Projection Transformation}
+	Projection transformation maps an image onto a new plane. It is similar to projecting a movie onto a screen.
+	
+	Example:
+	\begin{verbatim}
+		public static void warpPerspective(Mat inMat, Mat dst) {
+			MatOfPoint2f srcPoints = new MatOfPoint2f();
+			srcPoints.fromArray(new Point(0, 0), new Point(0, inMat.rows()), 
+			new Point(inMat.cols(), 0), new Point(inMat.cols(), inMat.rows()));
+			MatOfPoint2f dstPoints = new MatOfPoint2f();
+			dstPoints.fromArray(new Point(80, 0), new Point(-80, inMat.rows()), 
+			new Point(inMat.cols() + 80, 0), new Point(inMat.cols() - 80, inMat.rows()));
+			Mat trans_mat = Imgproc.getPerspectiveTransform(srcPoints, dstPoints);
+			Imgproc.warpPerspective(inMat, dst, trans_mat, inMat.size());
+		}
+	\end{verbatim}
+	
+	\section{Edge Detection}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.5\textwidth]{mdpic/20240919165105.png}
+		\caption{Edge detection example}
+	\end{figure}
+	
+	\subsection{Sobel Operator}
+	The Sobel operator is a first-order gradient algorithm that calculates the horizontal and vertical derivatives of an image, highlighting edges.
+	
+	Example:
+	\begin{verbatim}
+		public static final int SOBEL_SCALE = 1;
+		publicstatic final int SOBEL_DELTA = 0;
+		public static final int SOBEL_DDEPTH = CvType.CV_16S;
+		public static void sobel(Mat inMat, Mat dst) {
+			Mat gradX = new Mat(), gradY = new Mat();
+			Mat absGradX = new Mat(), absGradY = new Mat();
+			
+			// Calculate gradients in X and Y direction
+			Imgproc.Sobel(inMat, gradX, SOBEL_DDEPTH, 1, 0, 3, SOBEL_SCALE, SOBEL_DELTA, Core.BORDER_DEFAULT);
+			Imgproc.Sobel(inMat, gradY, SOBEL_DDEPTH, 0, 1, 3, SOBEL_SCALE, SOBEL_DELTA, Core.BORDER_DEFAULT);
+			
+			// Convert gradients to absolute value
+			Core.convertScaleAbs(gradX, absGradX);
+			Core.convertScaleAbs(gradY, absGradY);
+			
+			// Combine gradients
+			Core.addWeighted(absGradX, 0.5, absGradY, 0.5, 0, dst);
+		}
+		\end{verbatim}
+		
+		\subsection{Canny Edge Detection}
+		The Canny edge detection algorithm involves the following steps:
+		\begin{enumerate}
+		\item Use Gaussian blur to remove noise.
+		\item Compute gradients using Sobel operator.
+		\item Use non-maximum suppression to eliminate false edges.
+		\item Apply double threshold to detect strong and weak edges.
+		\item Track edges by hysteresis to form continuous edges.
+		\end{enumerate}
+		
+		Example:
+		\begin{verbatim}
+		public static void canny(Mat inMat, Mat dst, double threshold1, double threshold2) {
+			Imgproc.Canny(inMat, dst, threshold1, threshold2);
+		}
+		\end{verbatim}
+		
+		\section{License Plate Recognition Example}
+		\begin{enumerate}
+		\item Load the image.
+		\item Convert the image to grayscale.
+		\item Use Gaussian blur to reduce noise.
+		\item Apply Sobel operator to extract horizontal edges.
+		\item Apply binary threshold to emphasize the edges.
+		\item Use morphological operations to highlight potential regions of interest.
+		\item Perform contour detection and filter by aspect ratio and size to isolate the license plate.
+		\item Apply perspective transformation to straighten the license plate.
+		\item Use Optical Character Recognition (OCR) to read the license plate text.
+		\end{enumerate}
+		
+		Example code:
+		\begin{verbatim}
+		public static void recognizeLicensePlate(Mat inMat) {
+			// Step 1: Convert to grayscale
+			Mat gray = new Mat();
+			Imgproc.cvtColor(inMat, gray, Imgproc.COLOR_BGR2GRAY);
+			
+			// Step 2: Apply Gaussian blur
+			Mat blurred = new Mat();
+			Imgproc.GaussianBlur(gray, blurred, new Size(5, 5), 0);
+			
+			// Step 3: Sobel operator to find edges
+			Mat sobel = new Mat();
+			sobel(blurred, sobel);
+			
+			// Step 4: Apply binary threshold
+			Mat binary = new Mat();
+			Imgproc.threshold(sobel, binary, 0, 255, Imgproc.THRESH_BINARY + Imgproc.THRESH_OTSU);
+			
+			// Step 5: Morphological operations (dilation and erosion)
+			Mat morph = new Mat();
+			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(17, 3));
+			Imgproc.morphologyEx(binary, morph, Imgproc.MORPH_CLOSE, element);
+			
+			// Step 6: Find contours
+			List<MatOfPoint> contours = new ArrayList<>();
+			Mat hierarchy = new Mat();
+			Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+			
+			// Step 7: Filter contours by size and aspect ratio
+			for (MatOfPoint contour : contours) {
+				Rect rect = Imgproc.boundingRect(contour);
+				if (isPlateSize(rect)) {
+					Mat plate = new Mat(inMat, rect);
+					
+					// Step 8: Perspective transformation (optional)
+					Mat straightenedPlate = correctSkew(plate);
+					
+					// Step 9: OCR (Optical Character Recognition)
+					String plateText = readText(straightenedPlate);
+					System.out.println("License Plate: " + plateText);
+				}
+			}
+		}
+		\end{verbatim}
+		
+	\end{document}
