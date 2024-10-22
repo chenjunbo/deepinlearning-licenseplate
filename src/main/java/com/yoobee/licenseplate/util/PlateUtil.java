@@ -226,20 +226,20 @@ public class PlateUtil {
      * @return
      */
     public static PlateColor getPlateColor(Mat inMat, Boolean adaptive_minsv, Boolean debug, String tempPath) {
-//        // 判断阈值
-//        final float thresh = 0.5f;
-//        // 转到HSV空间，对H均衡化之后的结果
-//        Mat hsvMat = ImageUtil.equalizeHist(inMat, debug, tempPath);
-//
-//        if (colorMatch(hsvMat, PlateColor.GREEN, adaptive_minsv, debug, tempPath) > thresh) {
-//            return PlateColor.GREEN;
-//        }
-//        if (colorMatch(hsvMat, PlateColor.YELLOW, adaptive_minsv, debug, tempPath) > thresh) {
-//            return PlateColor.YELLOW;
-//        }
-//        if (colorMatch(hsvMat, PlateColor.BLUE, adaptive_minsv, debug, tempPath) > thresh) {
-//            return PlateColor.BLUE;
-//        }
+        // 判断阈值
+        final float thresh = 0.5f;
+        // 转到HSV空间，对H均衡化之后的结果
+        Mat hsvMat = ImageUtil.equalizeHist(inMat, debug, tempPath);
+
+        if (colorMatch(hsvMat, PlateColor.GREEN, adaptive_minsv, debug, tempPath) > thresh) {
+            return PlateColor.GREEN;
+        }
+        if (colorMatch(hsvMat, PlateColor.YELLOW, adaptive_minsv, debug, tempPath) > thresh) {
+            return PlateColor.YELLOW;
+        }
+        if (colorMatch(hsvMat, PlateColor.BLUE, adaptive_minsv, debug, tempPath) > thresh) {
+            return PlateColor.BLUE;
+        }
         return PlateColor.BLUE;
     }
 
@@ -304,8 +304,8 @@ public class PlateUtil {
      * @param tempPath
      */
     public static String charsSegment(Mat inMat, PlateColor color, Boolean debug, String tempPath) {
-
-        int charCount = 7; // 车牌字符个数
+        // 车牌字符个数
+        int charCount = 7;
 
         // 切换到灰度图
         Mat gray = new Mat();
@@ -315,7 +315,8 @@ public class PlateUtil {
         // 图像进行二值化 // 图像二值化阈值选取
         Mat threshold = new Mat();
         Imgproc.threshold(gray, threshold, 10, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
-        ImageUtil.debugImg(debug, tempPath, "plateThreshold", threshold); // 输出二值图
+        /* 输出二值图 */
+        ImageUtil.debugImg(debug, tempPath, "plateThreshold", threshold);
 
         // 边缘腐蚀
         threshold = ImageUtil.erode(threshold, debug, tempPath, 2, 2);
@@ -335,18 +336,21 @@ public class PlateUtil {
         List<MatOfPoint> contours = Lists.newArrayList();
 
         Imgproc.findContours(threshold, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-
-        Vector<Rect> charRect = new Vector<Rect>(); // 字符轮廓集合
+        // 字符轮廓集合
+        Vector<Rect> charRect = new Vector<Rect>();
 
         Mat dst = null;
         if (debug) {
             dst = inMat.clone();
             Imgproc.cvtColor(threshold, dst, Imgproc.COLOR_GRAY2BGR);
         }
-        for (int i = 0; i < contours.size(); i++) { // 遍历轮廓
+        // 遍历轮廓
+        for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
-            Rect mr = Imgproc.boundingRect(contour); // 得到包覆此轮廓的最小正矩形
-            if (checkCharSizes(mr)) { // 验证尺寸，主要验证高度是否满足要求，去掉不符合规格的字符，中文字符后续处理
+            // 得到包覆此轮廓的最小正矩形
+            Rect mr = Imgproc.boundingRect(contour);
+            // 验证尺寸，主要验证高度是否满足要求，去掉不符合规格的字符，中文字符后续处理
+            if (checkCharSizes(mr)) {
                 charRect.add(mr);
                 if (debug) {
                     ImageUtil.drawRectangle(dst, mr);
@@ -354,7 +358,8 @@ public class PlateUtil {
                 }
             }
         }
-        if (null == charRect || charRect.size() <= 0) { // 未识别到字符
+        // 未识别到字符
+        if (null == charRect || charRect.size() <= 0) {
             return null;
         }
         // 字符个数不足，要按照分割的区域补齐 // 同时处理中文字符
@@ -386,19 +391,22 @@ public class PlateUtil {
         predictChinese(chineseMat, chinese);
         result.add(chinese);
         charCount--;
-
-        for (int i = posi; i < sorted.size() && charCount > 0; i++, charCount--) { // 预测中文之外的字符
+        // 预测中文之外的字符
+        for (int i = posi; i < sorted.size() && charCount > 0; i++, charCount--) {
             Mat img_crop = new Mat(threshold, sorted.get(i));
             img_crop = preprocessChar(img_crop);
             PlateRecoResult chars = new PlateRecoResult();
             chars.setSort(i + 1);
             chars.setRect(chineseRect);
-            predict(img_crop, color, chars); // 预测数字、字符
+            // 预测数字、字符
+            predict(img_crop, color, chars);
             result.add(chars);
             ImageUtil.debugImg(debug, tempPath, "charMat", img_crop);
         }
-        String plate = "";  // 车牌识别结果
-        Double fonfidence = 0.0D; // 置信度
+        // 车牌识别结果
+        String plate = "";
+        // 置信度
+        Double fonfidence = 0.0D;
         for (PlateRecoResult p : result) {
             plate += p.getChars();
             fonfidence += p.getConfi();
@@ -793,6 +801,30 @@ public class PlateUtil {
         return nonZeroMat;
     }
 
+    /**
+     * 计算投影直方图：
+     * <p>
+     * 使用 projectedHistogram 方法（该方法在代码段中未给出，可能是自定义或来自其他部分的代码）计算输入图像 in 的垂直（vhist）和水平（hhist）投影直方图。这些直方图通常以浮点数数组的形式返回，分别表示图像在垂直和水平方向上的像素分布。
+     * 图像缩放：
+     * <p>
+     * 如果 sizeData 大于0，则使用 Imgproc.resize 方法将原始图像 in 缩放到 sizeData x sizeData 的尺寸，并将结果存储在 lowData 变量中。这一步可能是为了降低后续处理的计算量或提取图像的某种低分辨率特征。
+     * 计算特征向量长度：
+     * <p>
+     * 接下来，计算输出 Mat 对象 out 的列数（即特征向量的长度）。这个长度是垂直和水平投影直方图的长度之和，加上缩放后图像 lowData 的像素总数。
+     * 初始化输出 Mat 对象：
+     * <p>
+     * 使用计算出的列数和一行的高度（因为特征向量是一维的），以及 CvType.CV_32F（表示32位浮点数）来初始化 out 变量。
+     * 填充特征向量：
+     * <p>
+     * 通过遍历垂直和水平投影直方图的每个元素，以及缩放后图像的每个像素，将它们的值依次放入 out 的相应位置。这里，j 变量用于跟踪当前要填充的 out 中的位置。
+     * 返回结果：
+     * <p>
+     * 最后，返回包含所有计算出的特征（垂直和水平投影直方图的值以及缩放后图像的像素值）的 out 变量。
+     *
+     * @param in
+     * @param sizeData
+     * @return
+     */
     public static Mat features(Mat in, int sizeData) {
         float[] vhist = projectedHistogram(in, Direction.VERTICAL);
         float[] hhist = projectedHistogram(in, Direction.HORIZONTAL);
@@ -820,6 +852,7 @@ public class PlateUtil {
     }
 
     /**
+     * 从给定的图像路径imagePath中识别车牌，并返回一个包含识别结果的Vector<Mat>集合。这里使用了异步编程（通过CompletableFuture）来并行处理两种不同的车牌识别方法：一种是通过轮廓检测（findPlateByContours），另一种是通过HSV颜色过滤（findPlateByHsvFilter）
      * 根据图片，获取可能是车牌的图块集合 多种方法实现：
      * 1、网上常见的轮廓提取车牌算法
      * 2、hsv色彩分割算法
@@ -830,11 +863,15 @@ public class PlateUtil {
      * @param tempPath  图片处理过程的缓存目录
      */
     public static Vector<Mat> getPlateMat(String imagePath, Vector<Mat> dst, Boolean debug, String tempPath) {
+        //读取图像：首先，使用Imgcodecs.imread(imagePath)从给定的路径读取图像，并将其存储在Mat对象src中。
         Mat src = Imgcodecs.imread(imagePath);
-        // 调整大小,加快后续步骤的计算效率
+        // 图像调整大小：为了提高后续处理的效率，调用ImageUtil.narrow(src, 600, debug, tempPath)方法将图像的大小调整为最大宽度为600像素（高度按比例缩放）。调整后的图像存储在resized变量中。加快后续步骤的计算效率
         final Mat resized = ImageUtil.narrow(src, 600, debug, tempPath);
         System.out.println("Source image size: " + src.size());
         System.out.println("Resized image size: " + resized.size());
+        /*
+        使用CompletableFuture.supplyAsync(() -> ...)创建两个异步任务，分别调用findPlateByContours和findPlateByHsvFilter方法来识别车牌。这两个方法都接受原始图像src、调整大小后的图像resized、目标Vector<Mat>集合dst（用于存储结果）、调试标志debug和临时文件路径tempPath作为参数。findPlateByHsvFilter方法还额外接受一个PlateHSV.BLUE参数，这可能指定了用于HSV过滤的颜色范围。
+         */
         CompletableFuture<Vector<Mat>> f1 = CompletableFuture.supplyAsync(() -> {
             Vector<Mat> r = findPlateByContours(src, resized, dst, debug, tempPath);
             return r;
@@ -845,8 +882,14 @@ public class PlateUtil {
         });
 
         // 这里的 join() 将阻塞，直到所有的任务执行结束
+        //CompletableFuture.allOf(f1, f2).join();语句会阻塞当前线程，直到f1和f2两个异步任务都完成。CompletableFuture.allOf方法返回一个CompletableFuture<Void>，其join()方法会等待所有给定的CompletableFuture实例完成。
         CompletableFuture.allOf(f1, f2).join();
         try {
+            /*
+            使用f1.get()和f2.get()分别获取两个异步任务的结果。这两个结果都是Vector<Mat>类型，代表从图像中识别出的车牌区域。
+            使用addAll方法将f2的结果添加到f1的结果中，合并两个方法找到的所有车牌区域。
+            返回合并后的结果。
+             */
             Vector<Mat> result = f1.get();
             result.addAll(f2.get());
             return result;
