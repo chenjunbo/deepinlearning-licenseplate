@@ -37,11 +37,16 @@ public class PlateUtil {
     private static ANN_MLP ann_cn;
 
     static {
+        //load opencv native library
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        //load svm model
         svm = SVM.create();
+        //load ann model
         ann_blue = ANN_MLP.create();
         ann_cn = ANN_MLP.create();
+        //load svm model
         loadSvmModel(Constant.DEFAULT_SVM_PATH);
+        //load ann model
         loadAnnBlueModel(Constant.DEFAULT_ANN_PATH);
         loadAnnCnModel(Constant.DEFAULT_ANN_CN_PATH);
     }
@@ -63,6 +68,17 @@ public class PlateUtil {
 
     /**
      * 根据正则表达式判断字符串是否是车牌
+     * 定义正则表达式模式：通过Pattern.compile(Constant.PLATE_REG)，代码将Constant.PLATE_REG字符串编译成一个Pattern对象。这个Pattern对象代表了一个正则表达式的编译表示，可以用于后续创建Matcher对象以匹配字符串。
+     * <p>
+     * 初始化返回值：Boolean bl = false;这行代码初始化了一个Boolean对象bl，并将其值设置为false。这表示如果输入的字符串str不匹配正则表达式，则isPlate方法将返回false。
+     * <p>
+     * 创建Matcher对象：通过p.matcher(str)，代码创建了一个Matcher对象m，该对象可以对输入字符串str执行正则表达式匹配操作。
+     * <p>
+     * 查找匹配项：使用while (m.find())循环，代码尝试在字符串str中找到与正则表达式匹配的子序列。如果找到至少一个匹配项，m.find()将返回true，并且循环体内的代码将执行。
+     * <p>
+     * 在循环体内，bl = true;将bl的值设置为true，表示找到了至少一个匹配项。
+     * break;语句立即退出循环，因为一旦找到匹配项，就没有必要继续查找其他匹配项了。
+     * 返回结果：最后，return bl;语句返回bl的值。如果字符串str与正则表达式匹配，则bl为true；否则，由于循环结束后bl的值没有被改变，它将保持为false。
      *
      * @param str
      * @return
@@ -81,6 +97,15 @@ public class PlateUtil {
 
     /**
      * 根据图片，获取可能是车牌的图块集合
+     * 收一个图片路径（imagePath）、一个Vector<Mat>类型的集合（dst，可能用于存储处理结果或其他目的）、一个布尔值（debug，用于指示是否开启调试模式）、以及一个临时文件路径（tempPath），但最终并没有直接处理这些参数来寻找车牌，而是进行了一些前置准备后，调用了另一个同名的findPlateByContours方法（很可能是该类的另一个方法或者另一个类中的方法）来完成实际的检测工作。
+     * <p>
+     * 读取图片：首先，通过Imgcodecs.imread(imagePath)读取指定路径（imagePath）的图片，并将其存储在Mat类型的变量src中。Imgcodecs是OpenCV库中用于图像编码和解码的类。
+     * <p>
+     * 调整图片大小：接着，调用ImageUtil.narrow(src, 600, debug, tempPath)方法（这里假设ImageUtil是自定义的工具类）对原始图片src进行大小调整。这个方法的目的可能是为了将图片缩放到一个更小的尺寸（在这个例子中，宽度被调整为600像素），以减少后续处理步骤的计算量，从而提高效率。同时，这个方法可能还根据debug参数的值来决定是否保存调整大小后的图片到tempPath指定的临时路径下，以便于调试。
+     * <p>
+     * 调用另一个findPlateByContours方法：最后，这段代码并没有直接实现车牌检测的逻辑，而是调用了另一个同名的findPlateByContours方法，并将原始图片src、调整大小后的图片resized、以及之前提到的dst、debug、tempPath参数一起传递给了这个方法。这表明，真正的车牌检测逻辑是在这个被调用的方法中实现的。
+     * <p>
+     * 返回值：虽然这个重载版本的findPlateByContours方法没有直接返回车牌检测的结果，但根据命名和上下文，我们可以合理推测，被调用的findPlateByContours方法可能会修改dst集合，向其中添加检测到的车牌图像（以Mat对象的形式），并返回这个集合。然而，由于这个方法的具体实现没有给出，这只是一种假设。
      *
      * @param imagePath
      * @param dst
@@ -104,40 +129,40 @@ public class PlateUtil {
      * @param tempPath 图片处理过程的缓存目录
      */
     public static Vector<Mat> findPlateByContours(Mat src, Mat inMat, Vector<Mat> dst, Boolean debug, String tempPath) {
-        // 灰度图
+        // 灰度转换：首先，将输入图片inMat转换为灰度图gray。这是图像处理中常见的第一步，因为灰度图能够简化图像信息，同时保留足够的结构特征用于后续处理。
         Mat gray = new Mat();
         ImageUtil.gray(inMat, gray, debug, tempPath);
 
-        // 高斯模糊
+        // 高斯模糊：对灰度图gray应用高斯模糊，得到gsMat。高斯模糊是一种图像平滑技术，用于减少图像噪声和细节层次。这对于边缘检测等后续步骤是有益的，因为它可以消除小的细节，使得边缘更加突出。
         Mat gsMat = new Mat();
         ImageUtil.gaussianBlur(gray, gsMat, debug, tempPath);
 
-        // Sobel 运算，得到图像的一阶水平方向导数
+        // Sobel算子：对高斯模糊后的图像gsMat应用Sobel算子，得到sobel。Sobel算子是一种用于边缘检测的算法，它能够计算图像的一阶导数，从而突出显示图像中的边缘信息。
         Mat sobel = new Mat();
         ImageUtil.sobel(gsMat, sobel, debug, tempPath);
 
-        // 图像进行二值化
+        // 二值化：将Sobel算子处理后的图像sobel进行二值化处理，得到threshold。二值化是一种将图像转换为只有两种颜色的过程（通常是黑色和白色），这有助于进一步简化图像，使其更易于分析和处理。
         Mat threshold = new Mat();
         ImageUtil.threshold(sobel, threshold, debug, tempPath);
 
-        // 使用闭操作 同时处理一些干扰元素
+        // 闭操作：对二值图像threshold进行闭操作，得到morphology。闭操作是形态学操作的一种，它首先进行膨胀操作，然后进行腐蚀操作。闭操作通常用于填充图像中的小孔或小黑点，同时保持前景对象的大小不变。
         Mat morphology = threshold.clone();
         // 闭操作
         ImageUtil.morphologyClose(threshold, morphology, debug, tempPath);
 
-        // 边缘腐蚀，边缘膨胀，可以多执行两次
+        // 边缘腐蚀与膨胀：对闭操作后的图像morphology进行腐蚀和膨胀操作，以进一步细化边缘并去除噪声。这里可能进行了多次腐蚀和膨胀操作，以达到更好的效果。
         morphology = ImageUtil.erode(morphology, debug, tempPath, 4, 4);
         morphology = ImageUtil.dilate(morphology, debug, tempPath, 4, 4, true);
 
-        // 将二值图像，resize到原图的尺寸； 如果使用缩小后的图片提取图块，可能会出现变形，影响后续识别结果
+        // 图像放大：将二值图像morphology放大到原始图片src的尺寸。这是为了确保后续提取的图块不会因尺寸变化而失真，从而影响车牌识别的准确性。
         ImageUtil.enlarge(morphology, morphology, src.size(), debug, tempPath);
 
-        // 获取图中所有的轮廓
+        // 轮廓检测：在放大后的二值图像上检测轮廓，得到轮廓列表contours。
         List<MatOfPoint> contours = ImageUtil.contours(src, morphology, debug, tempPath);
-        // 根据轮廓， 筛选出可能是车牌的图块
+        // 筛选车牌图块：根据检测到的轮廓，筛选出可能是车牌的图块，并将这些图块存储在blockMat中。
         Vector<Mat> blockMat = ImageUtil.screenBlock(src, contours, false, debug, tempPath);
 
-        // 找出可能是车牌的图块，存到dst中， 返回结果
+        // 更新结果集：调用hasPlate方法（尽管该方法的实现未给出，但我们可以假设它负责将blockMat中的车牌图块添加到dst集合中）。
         hasPlate(blockMat, dst, debug, tempPath);
 
         return dst;
@@ -145,22 +170,27 @@ public class PlateUtil {
 
     /**
      * 通过HSV颜色空间，筛选出可能是车牌的图块
+     * 个方法的主要目的是在一张图片中通过HSV（Hue, Saturation, Value）色彩空间过滤的方式来寻找可能的车牌区域，并将这些区域作为Mat对象存储在Vector<Mat>集合中返回。
      *
-     * @param imagePath
-     * @param dst
-     * @param plateHSV
-     * @param debug
-     * @param tempPath
+     * @param imagePath 图片的路径，表示要处理的图片文件的位置。
+     * @param dst       一个Vector<Mat>类型的集合，用于存储检测到的车牌图像。这个方法最终会将检测到的车牌图像添加到这个集合中并返回
+     * @param plateHSV  一个自定义的PlateHSV对象，可能包含了与HSV色彩空间过滤相关的阈值或其他参数，用于指定车牌在HSV色彩空间中的颜色范围。
+     * @param debug     一个布尔值，用于指示是否开启调试模式。在调试模式下，可能会保存一些中间处理结果到磁盘上，以便于开发者进行问题排查。
+     * @param tempPath  一个字符串，表示临时文件的保存路径。在调试模式下，一些中间结果可能会被保存到这个路径下。
      * @return
      */
     public static Vector<Mat> findPlateByHsvFilter(String imagePath, Vector<Mat> dst, PlateHSV plateHSV, Boolean debug, String tempPath) {
+        //通过Imgcodecs.imread(imagePath)读取指定路径的图片，并将其存储在Mat类型的变量src中。Imgcodecs是OpenCV库中用于图像编码和解码的类。
         Mat src = Imgcodecs.imread(imagePath);
+        //调用ImageUtil.narrow(src, 600, debug, tempPath)方法（假设ImageUtil是一个自定义的工具类）对原始图片src进行大小调整，将其宽度调整为600像素。这个步骤的目的是为了减少后续处理步骤的计算量，提高处理效率。同时，根据debug参数的值，可能会将调整大小后的图片保存到tempPath指定的路径下。
         final Mat resized = ImageUtil.narrow(src, 600, debug, tempPath); // 调整大小,加快后续步骤的计算效率
+        //调用另一个同名的findPlateByHsvFilter方法，并将原始图片src、调整大小后的图片resized、dst集合、plateHSV对象、debug参数和tempPath路径一起传递给它。这个被调用的方法将执行实际的HSV过滤和车牌检测逻辑。
         return findPlateByHsvFilter(src, resized, dst, plateHSV, debug, tempPath);
     }
 
     /**
-     * 通过HSV颜色空间，筛选出可能是车牌的图块
+     * 通过HSV色彩空间过滤和一系列图像处理步骤来检测并提取图片中的车牌区域。
+     * 该方法接收多个参数，包括原始图片src、待处理的输入图片inMat、用于存储结果的Vector<Mat>集合dst、包含HSV阈值的PlateHSV对象plateHSV、调试模式标志debug以及临时文件路径tempPath。
      *
      * @param src      输入原图
      * @param inMat    调整尺寸后的图
@@ -171,16 +201,21 @@ public class PlateUtil {
      */
     public static Vector<Mat> findPlateByHsvFilter(Mat src, Mat inMat, Vector<Mat> dst, PlateHSV plateHSV, Boolean debug, String tempPath) {
         // hsv取值范围过滤
+        //HSV取值范围过滤：首先，使用ImageUtil.hsvFilter方法对输入图片inMat进行HSV色彩空间过滤，根据plateHSV对象中定义的minH和maxH阈值来提取特定色调范围内的图像区域。过滤后的图像存储在hsvMat中
         Mat hsvMat = ImageUtil.hsvFilter(inMat, debug, tempPath, plateHSV.minH, plateHSV.maxH);
         // 图像均衡化
+        //图像均衡化：然而，接下来的代码行似乎有一个逻辑错误或误解。它尝试将hsvMat从HSV色彩空间转换回BGR色彩空间（Imgproc.cvtColor(hsvMat, hsvMat, Imgproc.COLOR_HSV2BGR)），然后对这个BGR图像进行直方图均衡化（ImageUtil.equalizeHist）。
+        // 但直方图均衡化通常用于灰度图像以增强对比度，而不是彩色图像。此外，将HSV图像转换为BGR后再进行均衡化可能不是检测车牌的最佳方法。这里可能是为了某种特定的处理需求，但通常不是HSV过滤后的标准步骤。
         Imgproc.cvtColor(hsvMat, hsvMat, Imgproc.COLOR_HSV2BGR);
         Mat equalizeMat = ImageUtil.equalizeHist(hsvMat, debug, tempPath);
         hsvMat.release();
 
         // 二次hsv过滤，二值化
+        //二次HSV过滤和二值化：对均衡化后的图像（尽管这一步可能不是必需的或最优的）进行二次HSV阈值过滤，这次使用的是plateHSV.equalizeMinH和plateHSV.equalizeMaxH阈值，以进一步细化车牌区域。过滤后的图像通过二值化处理转换为二值图像threshold。
         Mat threshold = ImageUtil.hsvThreshold(equalizeMat, debug, tempPath, plateHSV.equalizeMinH, plateHSV.equalizeMaxH);
         Mat morphology = threshold.clone();
         // 闭操作
+        //形态学闭操作：对二值图像threshold进行形态学闭操作，以填充车牌区域内部的小孔或断裂，同时保持车牌的整体形状。闭操作的结果存储在morphology中。
         ImageUtil.morphologyClose(threshold, morphology, debug, tempPath);
         threshold.release();
 
@@ -188,45 +223,62 @@ public class PlateUtil {
         Imgproc.cvtColor(morphology, rgb, Imgproc.COLOR_BGR2GRAY);
 
         // 将二值图像，resize到原图的尺寸； 如果使用缩小后的图片提取图块，可能会出现变形，影响后续识别结果
+        //灰度转换和尺寸调整：将形态学处理后的图像morphology从BGR色彩空间转换为灰度图像rgb（这里变量命名可能有些误导，因为它实际上是灰度图）。然后，将灰度图像rgb调整到原始图片src的尺寸，以确保后续提取的车牌图块不会因尺寸变化而失真。
         ImageUtil.enlarge(rgb, rgb, src.size(), debug, tempPath);
         // 提取轮廓
+        //轮廓检测：在调整尺寸后的灰度图像上检测轮廓，并将检测到的轮廓存储在contours列表中。
         List<MatOfPoint> contours = ImageUtil.contours(src, rgb, debug, tempPath);
         // 根据轮廓， 筛选出可能是车牌的图块 // 切图的时候， 处理绿牌，需要往上方扩展一定比例像素
+        //筛选车牌图块：根据检测到的轮廓，使用ImageUtil.screenBlock方法筛选出可能是车牌的图块。如果plateHSV对象表示的是绿色车牌（通过plateHSV.equals(PlateHSV.GREEN)判断），则在切图时可能需要往上方扩展一定比例的像素，以更好地包含绿色车牌的顶部区域。
         Vector<Mat> blockMat = ImageUtil.screenBlock(src, contours, plateHSV.equals(PlateHSV.GREEN), debug, tempPath);
 
         // 找出可能是车牌的图块，存到dst中， 返回结果
+        //存储结果：调用hasPlate方法（尽管其实现未给出，但可以假设它负责将筛选出的车牌图块添加到dst集合中）。最后，返回包含检测到的车牌图像的dst集合。
         hasPlate(blockMat, dst, debug, tempPath);
         return dst;
     }
 
     /**
      * 输入车牌切图集合，判断是否包含车牌
+     * 从一组Mat对象（图像）中筛选出那些被认为是车牌的图像，并将这些图像添加到另一个Vector<Mat>集合中。该方法还提供了调试和保存中间结果的选项
      *
-     * @param inMat
-     * @param dst   包含车牌的图块
+     * @param inMat    输入参数，包含了一系列待检测的Mat对象（图像）。
+     * @param dst      包含车牌的图块,输出参数，用于存储被识别为车牌的Mat`对象。
+     * @param debug    一个布尔值，指示是否开启调试模式。
+     * @param tempPath 一个字符串，指定了临时文件的保存路径，用于在调试模式下保存图像。
      */
     public static void hasPlate(Vector<Mat> inMat, Vector<Mat> dst, Boolean debug, String tempPath) {
+        //遍历输入图像：通过for (Mat src : inMat)循环遍历inMat集合中的每一个Mat对象（图像），每次循环中，当前图像被赋值给变量src。
         for (Mat src : inMat) {
+            //尺寸检查：在将图像添加到结果集合之前，首先检查图像的尺寸是否符合预期（即是否已经被调整到特定的宽度和高度，
+            // 这里用Constant.DEFAULT_HEIGHT和Constant.DEFAULT_WIDTH表示）。这是为了确保只有经过预处理并符合特定尺寸要求的图像才会被进一步处理。
             if (src.rows() == Constant.DEFAULT_HEIGHT && src.cols() == Constant.DEFAULT_WIDTH) { // 尺寸限制; 已经结果resize了，此处判断一下
+                //特征提取：如果图像的尺寸符合要求，则调用SVMTrain.getFeature(src)方法从图像中提取特征。这个方法的具体实现没有给出，但可以假设它返回了一个能够代表图像特征的数据结构（在OpenCV中，这通常是一个Mat对象）。
                 Mat samples = SVMTrain.getFeature(src);
+                //SVM预测：使用训练好的支持向量机（SVM）模型（svm）对提取的特征进行预测，以判断该图像是否包含车牌。预测结果是一个浮点数flag，这里假设当flag等于0时，表示图像中包含车牌。
                 float flag = svm.predict(samples);
                 if (flag == 0) { // 目标符合
+                    //添加结果：如果图像被识别为车牌（即flag == 0），则将其添加到输出集合dst中。
                     dst.add(src);
+                    //如果开启了调试模式（debug为true），则调用ImageUtil.debugImg方法将识别为车牌的图像保存到指定的临时路径下，并可能附带一些调试信息（如文件名"platePredict"）。
                     ImageUtil.debugImg(true, tempPath, "platePredict", src);
                 }
             }
         }
-        return;
     }
 
     /**
      * 判断车牌切图颜色
+     * 根据输入的图片（inMat）来判断车牌的颜色，并返回一个PlateColor枚举值来表示车牌的颜色
      *
-     * @param inMat
+     * @param inMat          一个Mat类型的图片
+     * @param adaptive_minsv
+     * @param debug
+     * @param tempPath       临时文件路径tempPath
      * @return
      */
     public static PlateColor getPlateColor(Mat inMat, Boolean adaptive_minsv, Boolean debug, String tempPath) {
-        // 判断阈值
+        // 判断阈值,定义了一个阈值，用于比较颜色匹配的结果。
         final float thresh = 0.5f;
         // 转到HSV空间，对H均衡化之后的结果
         Mat hsvMat = ImageUtil.equalizeHist(inMat, debug, tempPath);
@@ -245,6 +297,8 @@ public class PlateUtil {
 
     /**
      * 颜色匹配计算
+     * 在给定的HSV色彩空间图像hsvMat中，根据特定的颜色范围（由PlateColor对象r定义）和可选的自适应饱和度阈值调整（由adaptive_minsv布尔值控制）
+     * ，计算并返回匹配该颜色范围的像素点占总像素点的比例。这个方法可能用于车牌识别或类似应用中，以识别具有特定颜色的车牌区域。
      *
      * @param hsvMat
      * @param r
@@ -254,27 +308,39 @@ public class PlateUtil {
      * @return
      */
     public static Float colorMatch(Mat hsvMat, PlateColor r, Boolean adaptive_minsv, Boolean debug, String tempPath) {
+        //HSV色彩空间中饱和度和亮度（Value）的最大值，这里是255。
         final float max_sv = 255;
+        //参考的最小饱和度阈值，用于自适应调整。
         final float minref_sv = 64;
+        //绝对的最小饱和度阈值，当不使用自适应调整时使用。
         final float minabs_sv = 95;
-
+        //图像的总像素点数，通过图像的宽乘以高得到。
         Integer countTotal = hsvMat.rows() * hsvMat.cols();
+        //匹配到指定颜色范围的像素点数，初始化为0。
         Integer countMatched = 0;
 
         // 匹配模板基色,切换以查找想要的基色
         int min_h = r.minH;
         int max_h = r.maxH;
+        //根据PlateColor对象r中的minH和maxH属性，确定要匹配的颜色在HSV色彩空间中的色调（Hue）范围。
         float diff_h = (float) ((max_h - min_h) / 2);
+        //计算色调范围的平均值avg_h和一半范围diff_h，用于后续计算。
         int avg_h = (int) (min_h + diff_h);
 
         for (int i = 0; i < hsvMat.rows(); i++) {
+            /*
+            使用两个嵌套的for循环遍历图像的每一行和每一列。
+            对于每个像素点，从hsvMat中获取其色调（H）、饱和度（S）和亮度（V）值。
+             */
             for (int j = 0; j < hsvMat.cols(); j++) {
                 int H = (int) hsvMat.get(i, j)[0];
                 int S = (int) hsvMat.get(i, j)[1];
                 int V = (int) hsvMat.get(i, j)[2];
 
                 boolean colorMatched = false;
+                //检查当前像素点的色调值是否在指定的范围内（min_h < H && H <= max_h）。
                 if (min_h < H && H <= max_h) {
+                    //如果是，则根据色调值到平均值avg_h的距离（Hdiff），以及是否启用自适应饱和度阈值调整（adaptive_minsv），计算当前的最小饱和度阈值min_sv。
                     int Hdiff = Math.abs(H - avg_h);
                     float Hdiff_p = Hdiff / diff_h;
                     float min_sv = 0;
@@ -283,15 +349,18 @@ public class PlateUtil {
                     } else {
                         min_sv = minabs_sv;
                     }
+                    //如果当前像素点的饱和度（S）和亮度（V）值都大于最小阈值min_sv且小于等于最大值max_sv，则认为该像素点的颜色与指定范围匹配，将colorMatched设置为true。
                     if ((min_sv < S && S <= max_sv) && (min_sv < V && V <= max_sv)) {
                         colorMatched = true;
                     }
                 }
+                //如果当前像素点的颜色与指定范围匹配，则增加countMatched的值。
                 if (colorMatched) {
                     countMatched++;
                 }
             }
         }
+        //将匹配到的像素点数countMatched除以总像素点数countTotal，并乘以1.0F（确保结果为浮点数），然后返回这个比例值。这个比例值表示了图像中匹配指定颜色范围的像素点所占的比例。
         return countMatched * 1F / countTotal;
     }
 
