@@ -10,17 +10,25 @@
 	\section{Image Channel}
 	In OpenCV, images can be represented in 1, 2, 3, or 4 channels:
 	\begin{itemize}
-		\item Channel 1: Grayscale image.
-		\item Channel 2: RGB555 or RGB565, often used in program processing such as Fourier transforms.
-		\item Channel 3: RGB color image.
-		\item Channel 4: RGBA (RGB plus an alpha channel for transparency, often found in PNG images).
+		\item Channel 1 is a grayscale image;
+		\item The 2-channel images are RGB555 and RGB565. The 2-channel diagram may be used in program processing, such as Fourier transform, where one channel is a real number and the other is an imaginary number, mainly for ease of programming. RGB555 is 16 bits, 2 bytes, 5+6+5. The first 5 bits of the first byte are R, the last 3 bits plus the second byte are G, and the last 5 bits of the second byte are B. It can be seen that the original image has been compressed
+		\item 3-channel color image (RGB);
+		\item 4 channels are RGBA, which is RGB plus an A channel, also known as alpha channel, representing transparency. PNG images are a typical type of 4-channel image. The alpha channel can be assigned values from 0 to 1 or from 0 to 255, indicating transparency to opacity
+		CvType type constant combination rules
 	\end{itemize}
 	
 	\subsection{CvType Type Constant Combination}
 	\begin{itemize}
-		\item Byte refers to the number of bits (8, 16, 32, or 64 bits).
-		\item U, S, and F represent unsigned int, signed int, and float types respectively.
-		\item C refers to the number of channels. For example, \texttt{CV\_8UC3} is an 8-bit unsigned 3-channel image.
+		\item Byte: number of bits, digits. There are 8 bytes, 16 bytes, 32 bytes, and 64 bytes; In Mat, the space occupied by each pixel is 8 bits, which is CV\_8
+		\item U|S|F ：
+		\begin{itemize}
+			\item U: unsigned int, unsigned integer
+			\item S: signed int, signed integer
+			\item F: float, single precision floating-point type, float type itself has a sign
+			The terms signed and unsigned here refer to binary encoding of images. In the process of writing, I mostly use unsigned symbols, namely CV\_8U and CV\_16U, when there is calculation involved
+			\item C [channels]: The number of channels in an image
+			**For example, CV_8UC3 is an 8-bit unsigned 3-channel (RGB color) image**
+		\end{itemize}
 	\end{itemize}
 	
 	\section{Grayscale Image}
