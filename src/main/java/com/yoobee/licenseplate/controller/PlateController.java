@@ -8,10 +8,11 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -66,10 +67,10 @@ public class PlateController {
      */
     @Operation(summary = "图片车牌识别", description = "路径不能包含中文，opencv路径转码过程乱码会报异常")
     @Parameters({
-            @Parameter(name = "filePath", description = "文件路径", required = true,schema =@Schema(implementation= String.class)),
-            @Parameter(name = "reRecognise", description = "重新识别",schema =@Schema(implementation= Boolean.class), example = "false")
+            @Parameter(name = "filePath", description = "文件路径", required = true, schema = @Schema(implementation = String.class)),
+            @Parameter(name = "reRecognise", description = "重新识别", schema = @Schema(implementation = Boolean.class), example = "false")
     })
-    @RequestMapping(value = "/recognise", method = RequestMethod.GET)
+    @RequestMapping(value = "/recogniselocal", method = RequestMethod.GET)
     public Object recognise(String filePath, Boolean reRecognise) {
         try {
             if (null != filePath) {
@@ -113,18 +114,17 @@ public class PlateController {
     }
 
 
-    @RequestMapping(value = "/recognise", method = RequestMethod.GET)
-    public Object recognise(FilePart image, Boolean reRecognise) throws IOException {
-        String relativePath = "./uploads/";
+    @RequestMapping(value = "/recognise", method = RequestMethod.POST)
+    public Object recognise(MultipartFile image, @RequestParam(defaultValue = "true") Boolean reRecognise) throws IOException {
+        String relativePath = "uploads/";
         // 创建路径（如果不存在）
         Path path = Paths.get(relativePath);
         if (!Files.exists(path)) {
             Files.createDirectories(path);
         }
         // 获取完整的文件路径
-        Path filePath = path.resolve(image.filename());
-
+        Path filePath = path.resolve(image.getOriginalFilename());
         image.transferTo(filePath);
-        return plateService.recognise(path.toAbsolutePath().toString(), reRecognise);
+        return plateService.recognise(filePath.toAbsolutePath().toString(), reRecognise);
     }
 }
