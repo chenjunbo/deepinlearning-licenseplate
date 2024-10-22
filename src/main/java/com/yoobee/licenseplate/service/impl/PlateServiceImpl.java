@@ -120,7 +120,7 @@ public class PlateServiceImpl implements PlateService {
             entity = plateFileMapper.selectByPrimaryKey(entity.getId());
         }
         // 查询debug文件
-        if (!StringUtils.isEmpty(entity.getTempPath())) {
+        if (entity!=null&&!StringUtils.isEmpty(entity.getTempPath())) {
             Vector<String> debugFiles = new Vector<String>();
             FileUtil.getFiles(entity.getTempPath(), debugFiles);
             entity.setDebugFiles(debugFiles);
