@@ -7,6 +7,7 @@
 \usepackage{color}
 \definecolor{keywordcolor}{rgb}{0.8,0.1,0.5}
 \definecolor{webgreen}{rgb}{0,.5,0}
+\definecolor{NavyBlue}{RGB}{0, 0, 128} % Standard RGB value for Navy Blue
 \title{License Plate Recognition Algorithm Explanation Document}
 \author{}
 \date{}
@@ -61,7 +62,7 @@
 		\item Each pixel in a grayscale image has only one sample color, and its grayscale is a multi-level color depth located between black and white.
 		\item Pixels with higher grayscale values are brighter, while those with lower grayscale values are darker. The maximum pixel value is 255 (representing white) and the minimum pixel value is 0 (representing black).
 	\end{itemize}
-	\begin{lstlisting}
+	\begin{lstlisting}[language=Java]
 		Imgproc.cvtColor(inMat, dst, Imgproc.COLOR_BGR2GRAY);
 	\end{lstlisting}
 	
@@ -78,7 +79,7 @@
 		\item Used to suppress noise, smooth images, and prevent detecting noise as edges.
 		\item Compared to mean filtering, Gaussian filtering has a smaller degree of blur in images.
 	\end{itemize}
-	\begin{lstlisting}
+	\begin{lstlisting}[language=Java]
 		public static final int BLUR_KERNEL=3; //The size of the filtering kernel must be a positive odd number
 		public static void gaussianBlur(Mat inMat, Mat dst) {
 			Size ksize=new Size(BLUR_KERNEL, BLUR_KERNEL); //3x3
@@ -94,7 +95,7 @@
 		\item Removing speckle noise and salt and pepper noise is very useful. Mean filtering noise is also involved in the operation.
 		\item The median filtering time is more than 5 times that of the mean filtering.
 	\end{itemize}
-	\begin{lstlisting}
+	\begin{lstlisting}[language=Java]
 		public static final int BLUR_KERNEL=3; //The size of the filtering kernel must be a positive odd number
 		public static void medianBlur(Mat inMat, Mat dst) {
 			Size ksize = new Size(BLUR_KERNEL, BLUR_KERNEL); //3x3
@@ -104,7 +105,7 @@
 	
 	\subsection{Mean Filtering}
 	The mean filtering itself has inherent flaws, that is, it cannot protect image details well, and at the same time, it destroys the details of the image while denoising, making the image blurry and unable to remove noise points well, especially the salt and pepper noise.
-	\begin{lstlisting}
+	\begin{lstlisting}[language=Java]
 		public static final int BLUR_KERNEL=5; //The size of the filtering kernel must be a positive odd number
 		public static void blur(Mat inMat, Mat dst) {
 			Point anchor = new Point(-1,-1);
@@ -137,7 +138,7 @@
 	\end{center}
 	
 	Namely: \( dst=A \cdot inMat \) where A is an affine matrix.
-	\begin{lstlisting}
+	\begin{lstlisting}[language=Java]
 		/**
 		*@ param pX moves pixels horizontally; If it is greater than 0, it indicates positive movement along the axis; if it is less than 0, it indicates negative movement along the axis
 		*@ param pY moves pixels vertically; If it is greater than 0, it indicates positive movement along the axis; if it is less than 0, it indicates negative movement along the axis
@@ -176,7 +177,7 @@ y
 
 Where \((x', y')\) are the new coordinates after rotation and \(\theta\) is the rotation angle. The center of rotation can be specified to avoid shifting the image out of bounds.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=Java]
 public static void rotateImg(Mat inMat, Mat dst, double angle, Point center) {
 // Calculate the rotation matrix
 Mat rot_mat = Imgproc.getRotationMatrix2D(center, angle, 1.0);
