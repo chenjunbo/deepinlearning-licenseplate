@@ -84,7 +84,7 @@
 	
 	\subsection{Mean Filtering}
 	The mean filtering itself has inherent flaws, that is, it cannot protect image details well, and at the same time, it destroys the details of the image while denoising, making the image blurry and unable to remove noise points well, especially the salt and pepper noise.
-	\begin{lstlisting}
+	\begin{lstlisting}[language=Java]
 		public static final int BLUR_KERNEL=5; //The size of the filtering kernel must be a positive odd number
 		public static void blur(Mat inMat, Mat dst) {
 			Point anchor = new Point(-1,-1);
