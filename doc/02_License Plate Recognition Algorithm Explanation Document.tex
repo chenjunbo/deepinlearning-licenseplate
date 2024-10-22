@@ -124,7 +124,7 @@
 		*/
 		public static void translateImg(Mat inMat, Mat dst, int pX, int pY) {
 			//Define a translation matrix to create a fully zero matrix with 2 rows and 3 columns;
-			//Normally, it should be 3 × 3, but the value of the last line has been fixed to 0 0 1
+			//Normally, it should be 3 \times 3, but the value of the last line has been fixed to 0 0 1
 			Mat trans_mat = Mat.zeros(2, 3, CvType.CV_32FC1);
 			trans_mat.put(0, 0, 1);
 			trans_mat.put(0, 2, pX);
