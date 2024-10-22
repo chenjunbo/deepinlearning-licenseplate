@@ -1,6 +1,7 @@
 ## License plate recognition process description document
 
-The overall process is mainly divided into two major steps:
+> The overall process is mainly divided into two major steps:
+
 - 1. Use multiple algorithms to extract the outline of the license plate, obtain the license plate cut-out from the original image according to the outline, and use the SVM algorithm model to determine whether the cut-out is a license plate
 - 2. Determine the color of the license plate based on the license plate cut-out, and use the contour extraction algorithm to extract the license plate character outline, and obtain the license plate cut-out from the binary image according to the outline; use the ANN algorithm model to use the Chinese character model, blue license plate model, and green license plate model to recognize the text content of the character cut-out
 
@@ -8,7 +9,8 @@ The overall process is mainly divided into two major steps:
 | :----------------------------------------------------------: |
 
 ### License plate block extraction
-The purpose is to extract the block containing the license plate from the license plate image; there are three implementation methods:
+> The purpose is to extract the block containing the license plate from the license plate image; there are three implementation methods:
+
 - 1. Contour extraction algorithm
 - 2. Color segmentation extraction algorithm
 - 3. Feature recognition extraction algorithm
@@ -17,7 +19,7 @@ The purpose is to extract the block containing the license plate from the licens
 | :----------------------------------------------------------: |
 
 #### 1. Contour extraction algorithm
-The main image processing process is as follows:
+> The main image processing process is as follows:
 
 | ![image-20240924225915405](mdpic/image-20240924225915405.png) |
 | :----------------------------------------------------------: |
@@ -41,7 +43,7 @@ The main image processing process is as follows:
 
 #### 2. Color segmentation extraction algorithm
 
-The main image processing process is as follows:
+> The main image processing process is as follows:
 
 | ![image-20240924230824445](mdpic/image-20240924230824445.png) |
 | :----------------------------------------------------------: |
@@ -63,7 +65,7 @@ The main image processing process is as follows:
 
 #### 3. Feature recognition and extraction algorithm
 
-The main image processing process is as follows:
+> The main image processing process is as follows:
 
 | ![image-20240924230957298](mdpic/image-20240924230957298.png) |
 | :----------------------------------------------------------: |
@@ -79,7 +81,7 @@ The main image processing process is as follows:
 ---------------------------
 
 ### License plate character recognition
-The purpose is to identify the color and number of the license plate from the license plate block
+>The purpose is to identify the color and number of the license plate from the license plate block
 
 | ![image-20240924232836851](mdpic/image-20240924232836851.png) |
 | :----------------------------------------------------------: |
