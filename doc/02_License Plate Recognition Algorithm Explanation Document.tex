@@ -1,0 +1,96 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+
+\title{License Plate Recognition Algorithm Explanation}
+\begin{document}
+	\maketitle
+	
+	\section{Image Channel}
+	In OpenCV, images can be represented in 1, 2, 3, or 4 channels:
+	\begin{itemize}
+		\item Channel 1: Grayscale image.
+		\item Channel 2: RGB555 or RGB565, often used in program processing such as Fourier transforms.
+		\item Channel 3: RGB color image.
+		\item Channel 4: RGBA (RGB plus an alpha channel for transparency, often found in PNG images).
+	\end{itemize}
+	
+	\subsection{CvType Type Constant Combination}
+	\begin{itemize}
+		\item Byte refers to the number of bits (8, 16, 32, or 64 bits).
+		\item U, S, and F represent unsigned int, signed int, and float types respectively.
+		\item C refers to the number of channels. For example, \texttt{CV\_8UC3} is an 8-bit unsigned 3-channel image.
+	\end{itemize}
+	
+	\section{Grayscale Image}
+	\begin{itemize}
+		\item Grayscale conversion is the process of making the R, G, and B components of a color image equal.
+		\item Each pixel in a grayscale image has only one sample color, with a value between black (0) and white (255).
+	\end{itemize}
+	
+	\texttt{Imgproc.cvtColor(inMat, dst, Imgproc.COLOR\_BGR2GRAY);}
+	
+	\section{Image Filtering (Noise Reduction)}
+	Image filtering suppresses the noise of the target image while preserving details. It can be used to blur or eliminate noise.
+	\subsection{Gaussian Filtering}
+	Gaussian blur convolves a kernel (e.g., 3x3 or 5x5) with the original image. It smooths images and suppresses noise.
+	
+	\texttt{Imgproc.GaussianBlur(inMat, dst, ksize, 0, 0, Core.BORDER\_DEFAULT);}
+	
+	\subsection{Median Filtering}
+	Median filtering replaces the grayscale value of a pixel with the median grayscale value in its neighborhood, useful for removing salt and pepper noise.
+	
+	\texttt{Imgproc.MedianBlur(inMat, dst, ksize);}
+	
+	\subsection{Mean Filtering}
+	Mean filtering can blur images and is less effective at removing noise while preserving details.
+	
+	\texttt{Imgproc.blur(inMat, dst, ksize, anchor, Core.BORDER\_DEFAULT);}
+	
+	\section{Affine Transformation}
+	Common transformations such as scaling, rotation, and translation are types of affine transformations. Affine transformation involves transforming spatial coordinates and interpolating grayscale values.
+	
+	\subsection{Translation}
+	Translation shifts spatial coordinates by specific amounts along the x and y axes.
+	
+	\begin{equation}
+		dst = A \cdot inMat
+	\end{equation}
+	Where A is the affine matrix.
+	
+	\texttt{Imgproc.warpAffine(inMat, dst, trans\_mat, inMat.size());}
+	
+	\subsection{Scaling}
+	Scaling is used to zoom in or out of an image, with options to lock or unlock the aspect ratio.
+	
+	\texttt{Imgproc.resize(inMat, dst, dst.size(), ratio, ratio, Imgproc.INTER\_CUBIC);}
+	
+	\subsection{Rotation}
+	Rotation can be clockwise (positive angle) or counterclockwise (negative angle).
+	
+	\texttt{Imgproc.getRotationMatrix2D(center, angle, 1);}
+	
+	\section{Projection Transformation}
+	Projection transformation projects the image onto a new plane, similar to a perspective shift.
+	
+	\texttt{Imgproc.getPerspectiveTransform(srcPoints, dstPoints);}
+	
+	\section{Edge Detection}
+	\subsection{Sobel Operation}
+	Sobel is a first-order gradient algorithm used for edge detection, applying derivative operations to obtain horizontal and vertical gradients.
+	
+	\texttt{Imgproc.Sobel(inMat, grad\_x, CvType.CV\_8U, 1, 0, SOBEL\_KERNEL);}
+	
+	\subsection{Scharr Operation}
+	Scharr provides more edge details compared to Sobel.
+	
+	\texttt{Imgproc.Scharr(inMat, grad\_x, CvType.CV\_32F, 1, 0);}
+	
+	\section{Image Binarization}
+	Binarization converts an image into black and white based on a threshold, useful for edge detection and contour extraction.
+	
+	\section{Contour Extraction}
+	Contour extraction identifies the edges of objects in an image. It is used in license plate recognition to extract and process the license plate region.
+	
+\end{document}
