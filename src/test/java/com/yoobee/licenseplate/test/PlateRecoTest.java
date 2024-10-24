@@ -2,7 +2,7 @@ package com.yoobee.licenseplate.test;
 
 /**
  * EasyPr车牌识别测试类
- * - https://gitee.com/easypr/EasyPR 很老的项目了
+ * - https://gitee.com/easypr/EasyPR
  * - EasyPR是一个开源的中文车牌识别系统
  * - 基于openCV开源库
  * - 能够识别中文；例如车牌为苏EUK722的图片

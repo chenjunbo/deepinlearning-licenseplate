@@ -68,7 +68,8 @@ public class PlateUtil {
 
     /**
      * 根据正则表达式判断字符串是否是车牌
-     * 定义正则表达式模式：通过Pattern.compile(Constant.PLATE_REG)，代码将Constant.PLATE_REG字符串编译成一个Pattern对象。这个Pattern对象代表了一个正则表达式的编译表示，可以用于后续创建Matcher对象以匹配字符串。
+     * 定义正则表达式模式：通过Pattern.compile(Constant.PLATE_REG)，代码将Constant.PLATE_REG字符串编译成一个Pattern对象。这个Pattern对象代表了一个正则表达式的编译表示，
+     * 可以用于后续创建Matcher对象以匹配字符串。
      * <p>
      * 初始化返回值：Boolean bl = false;这行代码初始化了一个Boolean对象bl，并将其值设置为false。这表示如果输入的字符串str不匹配正则表达式，则isPlate方法将返回false。
      * <p>
@@ -97,15 +98,19 @@ public class PlateUtil {
 
     /**
      * 根据图片，获取可能是车牌的图块集合
-     * 收一个图片路径（imagePath）、一个Vector<Mat>类型的集合（dst，可能用于存储处理结果或其他目的）、一个布尔值（debug，用于指示是否开启调试模式）、以及一个临时文件路径（tempPath），但最终并没有直接处理这些参数来寻找车牌，而是进行了一些前置准备后，调用了另一个同名的findPlateByContours方法（很可能是该类的另一个方法或者另一个类中的方法）来完成实际的检测工作。
+     * 收一个图片路径（imagePath）、一个Vector<Mat>类型的集合（dst，可能用于存储处理结果或其他目的）、一个布尔值（debug，用于指示是否开启调试模式）、以及一个临时文件路径（tempPath），
+     * 但最终并没有直接处理这些参数来寻找车牌，而是进行了一些前置准备后，调用了另一个同名的findPlateByContours方法（很可能是该类的另一个方法或者另一个类中的方法）来完成实际的检测工作。
      * <p>
      * 读取图片：首先，通过Imgcodecs.imread(imagePath)读取指定路径（imagePath）的图片，并将其存储在Mat类型的变量src中。Imgcodecs是OpenCV库中用于图像编码和解码的类。
      * <p>
-     * 调整图片大小：接着，调用ImageUtil.narrow(src, 600, debug, tempPath)方法（这里假设ImageUtil是自定义的工具类）对原始图片src进行大小调整。这个方法的目的可能是为了将图片缩放到一个更小的尺寸（在这个例子中，宽度被调整为600像素），以减少后续处理步骤的计算量，从而提高效率。同时，这个方法可能还根据debug参数的值来决定是否保存调整大小后的图片到tempPath指定的临时路径下，以便于调试。
+     * 调整图片大小：接着，调用ImageUtil.narrow(src, 600, debug, tempPath)方法（这里假设ImageUtil是自定义的工具类）对原始图片src进行大小调整。
+     * 这个方法的目的可能是为了将图片缩放到一个更小的尺寸（在这个例子中，宽度被调整为600像素），以减少后续处理步骤的计算量，从而提高效率。同时，这个方法可能还根据debug参数的值来决定是否保存调整大小后的图片到tempPath指定的临时路径下，以便于调试。
      * <p>
-     * 调用另一个findPlateByContours方法：最后，这段代码并没有直接实现车牌检测的逻辑，而是调用了另一个同名的findPlateByContours方法，并将原始图片src、调整大小后的图片resized、以及之前提到的dst、debug、tempPath参数一起传递给了这个方法。这表明，真正的车牌检测逻辑是在这个被调用的方法中实现的。
+     * 调用另一个findPlateByContours方法：最后，这段代码并没有直接实现车牌检测的逻辑，而是调用了另一个同名的findPlateByContours方法，
+     * 并将原始图片src、调整大小后的图片resized、以及之前提到的dst、debug、tempPath参数一起传递给了这个方法。这表明，真正的车牌检测逻辑是在这个被调用的方法中实现的。
      * <p>
-     * 返回值：虽然这个重载版本的findPlateByContours方法没有直接返回车牌检测的结果，但根据命名和上下文，我们可以合理推测，被调用的findPlateByContours方法可能会修改dst集合，向其中添加检测到的车牌图像（以Mat对象的形式），并返回这个集合。然而，由于这个方法的具体实现没有给出，这只是一种假设。
+     * 返回值：虽然这个重载版本的findPlateByContours方法没有直接返回车牌检测的结果，但根据命名和上下文，我们可以合理推测，被调用的findPlateByContours方法可能会修改dst集合，
+     * 向其中添加检测到的车牌图像（以Mat对象的形式），并返回这个集合。然而，由于这个方法的具体实现没有给出，这只是一种假设。
      *
      * @param imagePath
      * @param dst
@@ -368,9 +373,9 @@ public class PlateUtil {
      * 车牌切图，分割成单个字符切图
      *
      * @param inMat    输入原始图像
-     * @param color    返回字符切图vector
+     * @param color   车牌颜色
      * @param debug
-     * @param tempPath
+     * @param tempPath 临时文件存储路径，用于保存调试图像。
      */
     public static String charsSegment(Mat inMat, PlateColor color, Boolean debug, String tempPath) {
         // 车牌字符个数
@@ -379,18 +384,19 @@ public class PlateUtil {
         // 切换到灰度图
         Mat gray = new Mat();
         Imgproc.cvtColor(inMat, gray, Imgproc.COLOR_BGR2GRAY);
+        //使用高斯模糊减少噪声。
         ImageUtil.gaussianBlur(gray, gray, debug, tempPath);
 
-        // 图像进行二值化 // 图像二值化阈值选取
+        // 图像进行二值化 // 图像二值化阈值选取,应用Otsu阈值方法进行二值化处理，使图像更加清晰。
         Mat threshold = new Mat();
         Imgproc.threshold(gray, threshold, 10, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
         /* 输出二值图 */
         ImageUtil.debugImg(debug, tempPath, "plateThreshold", threshold);
 
-        // 边缘腐蚀
+        // 边缘腐蚀,使用腐蚀操作（erode）来消除小对象（噪声）和细化边缘。
         threshold = ImageUtil.erode(threshold, debug, tempPath, 2, 2);
 
-        // 垂直方向投影，错切校正 // 理论上，还可以用于分割字符
+        // 垂直方向投影，错切校正,通过垂直投影和错切校正来调整车牌的角度。 // 理论上，还可以用于分割字符
         Integer px = getShearPx(threshold);
         ImageUtil.shearCorrection(threshold, threshold, px, debug, tempPath);
 
@@ -533,32 +539,33 @@ public class PlateUtil {
 
         // 分割字符，返回所有字符的边框，Rect(x, y, width, height)
         // 在这里提取，估计比轮廓提取方式更准确，尤其在提取中文字符方面
-//        Integer height = dst.rows() - rows.size();
-//        Integer y = minY + 1;   // 修正一个像素
-//        Integer x = 0;
-//        Integer width = 0;
-//        Boolean bl = false; // 是否是全0的列
-//        Vector<Rect> rects = new Vector<Rect>();    // 提取到的轮廓集合，可用于后续的字符识别，也可用于去除垂直方向的干扰
-//        for (int i = 0; i < dst.cols(); i++) {
-//            int count = Core.countNonZero(dst.col(i));
-//            if(count <= 0) { // 黑色的列; 因为前面就行了边缘腐蚀，这里选择全黑色的列作为分割
-//                bl = true;
-//            } else {
-//                if(bl) {
-//                    x = i;
-//                }
-//                bl =false;
-//                width++;
-//            }
-//            if(bl && width > 0) {   // 切割图块
-//                Rect r = new Rect(x, y, width, height); // 提取到的轮廓
-//                // 按轮廓切图
-//                Mat img_crop = new Mat(dst, r);
-//                ImageUtil.debugImg(debug, tempPath, "sepAndClear-crop", img_crop);
-//                rects.add(r);
-//                width = 0;
-//            }
-//        }
+        //这里可能要注释掉
+        Integer height = dst.rows() - rows.size();
+        Integer y = minY + 1;   // 修正一个像素
+        Integer x = 0;
+        Integer width = 0;
+        Boolean bl = false; // 是否是全0的列
+        Vector<Rect> rects = new Vector<Rect>();    // 提取到的轮廓集合，可用于后续的字符识别，也可用于去除垂直方向的干扰
+        for (int i = 0; i < dst.cols(); i++) {
+            int count = Core.countNonZero(dst.col(i));
+            if(count <= 0) { // 黑色的列; 因为前面就行了边缘腐蚀，这里选择全黑色的列作为分割
+                bl = true;
+            } else {
+                if(bl) {
+                    x = i;
+                }
+                bl =false;
+                width++;
+            }
+            if(bl && width > 0) {   // 切割图块
+                Rect r = new Rect(x, y, width, height); // 提取到的轮廓
+                // 按轮廓切图
+                Mat img_crop = new Mat(dst, r);
+                ImageUtil.debugImg(debug, tempPath, "sepAndClear-crop", img_crop);
+                rects.add(r);
+                width = 0;
+            }
+        }
         return dst;
     }
 
@@ -692,6 +699,7 @@ public class PlateUtil {
             if (val > maxVal) {
                 maxVal = val;
                 index = j;
+                System.err.println(index);
             }
         }
         String result = Constant.STR_CHINESE[index];
@@ -873,10 +881,12 @@ public class PlateUtil {
     /**
      * 计算投影直方图：
      * <p>
-     * 使用 projectedHistogram 方法（该方法在代码段中未给出，可能是自定义或来自其他部分的代码）计算输入图像 in 的垂直（vhist）和水平（hhist）投影直方图。这些直方图通常以浮点数数组的形式返回，分别表示图像在垂直和水平方向上的像素分布。
+     * 使用 projectedHistogram 方法（该方法在代码段中未给出，可能是自定义或来自其他部分的代码）计算输入图像 in 的垂直（vhist）和水平（hhist）投影直方图。
+     * 这些直方图通常以浮点数数组的形式返回，分别表示图像在垂直和水平方向上的像素分布。
      * 图像缩放：
      * <p>
-     * 如果 sizeData 大于0，则使用 Imgproc.resize 方法将原始图像 in 缩放到 sizeData x sizeData 的尺寸，并将结果存储在 lowData 变量中。这一步可能是为了降低后续处理的计算量或提取图像的某种低分辨率特征。
+     * 如果 sizeData 大于0，则使用 Imgproc.resize 方法将原始图像 in 缩放到 sizeData x sizeData 的尺寸，并将结果存储在 lowData 变量中。
+     * 这一步可能是为了降低后续处理的计算量或提取图像的某种低分辨率特征。
      * 计算特征向量长度：
      * <p>
      * 接下来，计算输出 Mat 对象 out 的列数（即特征向量的长度）。这个长度是垂直和水平投影直方图的长度之和，加上缩放后图像 lowData 的像素总数。
@@ -921,7 +931,8 @@ public class PlateUtil {
     }
 
     /**
-     * 从给定的图像路径imagePath中识别车牌，并返回一个包含识别结果的Vector<Mat>集合。这里使用了异步编程（通过CompletableFuture）来并行处理两种不同的车牌识别方法：一种是通过轮廓检测（findPlateByContours），另一种是通过HSV颜色过滤（findPlateByHsvFilter）
+     * 从给定的图像路径imagePath中识别车牌，并返回一个包含识别结果的Vector<Mat>集合。这里使用了异步编程（通过CompletableFuture）来并行处理两种不同的车牌识别方法：
+     * 一种是通过轮廓检测（findPlateByContours），另一种是通过HSV颜色过滤（findPlateByHsvFilter）
      * 根据图片，获取可能是车牌的图块集合 多种方法实现：
      * 1、网上常见的轮廓提取车牌算法
      * 2、hsv色彩分割算法
